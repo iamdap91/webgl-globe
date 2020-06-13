@@ -615,8 +615,8 @@ function loadSVG(url) {
 
     //
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xb0b0b0);
+    // const scene = new THREE.Scene();
+    // scene.background = new THREE.Color(0xb0b0b0);
 
     //
 
@@ -633,9 +633,14 @@ function loadSVG(url) {
         var paths = data.paths;
 
         var group = new THREE.Group();
-        group.scale.multiplyScalar(0.25);
-        group.position.x = -70;
-        group.position.y = 70;
+        // group.scale.multiplyScalar(0.25);
+        group.scale.multiplyScalar(0.001);
+        
+        // group.position.x = -70;
+        // group.position.y = 70;
+        group.position.x = 0.5;
+        group.position.y = 0.35;
+        
         group.scale.y *= -1;
 
         for (var i = 0; i < paths.length; i++) {
@@ -660,7 +665,7 @@ function loadSVG(url) {
 
                     var shape = shapes[j];
 
-                    var geometry = new THREE.ShapeBufferGeometry(shape);
+                    var geometry = new THREE.ExtrudeBufferGeometry(shape, {depth : -100});
                     var mesh = new THREE.Mesh(geometry, material);
 
                     group.add(mesh);
@@ -710,3 +715,12 @@ function loadSVG(url) {
 }
 
 init();
+
+const guiData = {
+    currentURL: 'models/svg/tiger.svg',
+    drawFillShapes: true,
+    drawStrokes: true,
+    fillShapesWireframe: false,
+    strokesWireframe: false
+};
+loadSVG('../images/svg/korea.svg');
