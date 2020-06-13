@@ -28,6 +28,7 @@ const earthParam = {
 let sphere;
 let pickingSphere;
 let clouds;
+let svgMap;
 let directionalLight;
 let ambientLight;
 
@@ -60,6 +61,7 @@ let controlPanel = {
     },
     modeControls: {
         pickingMode: false,
+        detailMode: false,
     }
 }
 
@@ -77,7 +79,7 @@ async function init() {
     controls = new OrbitControls(camera, webglEl);
     {
         controls.enablePan = false;
-        controls.maxDistance = 3;
+        controls.maxDistance = 5;
         controls.minDistance = 1.5;
         // controls.cameraAutoRotation = cameraAutoRotation;
     }
@@ -107,6 +109,7 @@ async function init() {
         controls.update();
         updateLabels();
         stats.update();
+
         requestAnimationFrame(render);
         renderer.render(scene, camera);
     }
@@ -189,6 +192,9 @@ function createGUI() {
             clouds.material.opacity = 1;
             surfaceControls.viewClouds = true;
         }
+    });
+    guiMode.add(modeControls, 'detailMode').onChange((value) => {
+        svgMap.position.z = value ? 0 : 100;
     });
 
 }
@@ -620,9 +626,9 @@ function loadSVG(url) {
 
     //
 
-    var helper = new THREE.GridHelper(160, 10);
-    helper.rotation.x = Math.PI / 2;
-    scene.add(helper);
+    // var helper = new THREE.GridHelper(160, 10);
+    // helper.rotation.x = Math.PI / 2;
+    // scene.add(helper);
 
     //
 
@@ -638,7 +644,7 @@ function loadSVG(url) {
         
         // group.position.x = -70;
         // group.position.y = 70;
-        group.position.x = 0.5;
+        group.position.x = 0.7;
         group.position.y = 0.35;
         
         group.scale.y *= -1;
@@ -655,7 +661,7 @@ function loadSVG(url) {
                     opacity: path.userData.style.fillOpacity,
                     transparent: path.userData.style.fillOpacity < 1,
                     side: THREE.DoubleSide,
-                    depthWrite: false,
+                    depthWrite: true,
                     wireframe: guiData.fillShapesWireframe
                 });
 
@@ -709,7 +715,8 @@ function loadSVG(url) {
         console.log(group);
 
         scene.add(group);
-
+        svgMap = group;
+        svgMap.position.z = 100;
     });
 
 }
@@ -721,6 +728,7 @@ const guiData = {
     drawFillShapes: true,
     drawStrokes: true,
     fillShapesWireframe: false,
-    strokesWireframe: false
+    strokesWireframe: true
 };
 loadSVG('../images/svg/korea.svg');
+
