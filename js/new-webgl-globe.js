@@ -62,6 +62,13 @@ let controlPanel = {
     modeControls: {
         pickingMode: false,
         detailMode: false,
+    },
+    svgControls: {
+        currentURL: 'models/svg/tiger.svg',
+        drawFillShapes: true,
+        drawStrokes: true,
+        fillShapesWireframe: false,
+        strokesWireframe: true
     }
 }
 
@@ -654,7 +661,7 @@ function loadSVG(url) {
             var path = paths[i];
 
             var fillColor = path.userData.style.fill;
-            if (guiData.drawFillShapes && fillColor !== undefined && fillColor !== 'none') {
+            if (controlPanel.svgControls.drawFillShapes && fillColor !== undefined && fillColor !== 'none') {
 
                 var material = new THREE.MeshBasicMaterial({
                     color: new THREE.Color().setStyle(fillColor),
@@ -662,7 +669,7 @@ function loadSVG(url) {
                     transparent: path.userData.style.fillOpacity < 1,
                     side: THREE.DoubleSide,
                     depthWrite: true,
-                    wireframe: guiData.fillShapesWireframe
+                    wireframe: controlPanel.svgControls.fillShapesWireframe
                 });
 
                 var shapes = path.toShapes(true);
@@ -682,7 +689,7 @@ function loadSVG(url) {
 
             var strokeColor = path.userData.style.stroke;
 
-            if (guiData.drawStrokes && strokeColor !== undefined && strokeColor !== 'none') {
+            if (controlPanel.svgControls.drawStrokes && strokeColor !== undefined && strokeColor !== 'none') {
 
                 var material = new THREE.MeshBasicMaterial({
                     color: new THREE.Color().setStyle(strokeColor),
@@ -690,7 +697,7 @@ function loadSVG(url) {
                     transparent: path.userData.style.strokeOpacity < 1,
                     side: THREE.DoubleSide,
                     depthWrite: false,
-                    wireframe: guiData.strokesWireframe
+                    wireframe: controlPanel.svgControls.strokesWireframe
                 });
 
                 for (var j = 0, jl = path.subPaths.length; j < jl; j++) {
@@ -723,12 +730,5 @@ function loadSVG(url) {
 
 init();
 
-const guiData = {
-    currentURL: 'models/svg/tiger.svg',
-    drawFillShapes: true,
-    drawStrokes: true,
-    fillShapesWireframe: false,
-    strokesWireframe: true
-};
 loadSVG('../images/svg/korea.svg');
 
