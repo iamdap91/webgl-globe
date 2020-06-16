@@ -1,11 +1,16 @@
-
 import * as THREE from './build/three.module.js';
 
 import Stats from './libs/stats.module.js';
 
-import { GUI } from './libs/dat.gui.module.js';
-import { OrbitControls } from './controls/OrbitControls.js';
-import { SVGLoader } from './loaders/SVGLoader.js';
+import {
+    GUI
+} from './libs/dat.gui.module.js';
+import {
+    OrbitControls
+} from './controls/OrbitControls.js';
+import {
+    SVGLoader
+} from './loaders/SVGLoader.js';
 
 
 const width = window.innerWidth;
@@ -29,9 +34,9 @@ let sphere;
 let pickingSphere;
 let clouds;
 let svgMap;
+let onlyMap = []; 
 let directionalLight;
 let ambientLight;
-
 
 // about picking
 let numCountriesSelected = 0;
@@ -44,6 +49,11 @@ const tempV = new THREE.Vector3();
 const cameraToPoint = new THREE.Vector3();
 const cameraPosition = new THREE.Vector3();
 const normalMatrix = new THREE.Matrix3();
+
+// raycast
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
+let svgLoaded = false;
 
 let controlPanel = {
     cameraControls: {
@@ -83,8 +93,7 @@ async function init() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
 
-    controls = new OrbitControls(camera, webglEl);
-    {
+    controls = new OrbitControls(camera, webglEl); {
         controls.enablePan = false;
         controls.maxDistance = 5;
         controls.minDistance = 1.5;
@@ -107,8 +116,23 @@ async function init() {
     addMeshes();
     addPicking();
     createGUI();
+    loadSVG('../images/svg/korea.svg');
 
     function render() {
+        // raycaster
+        raycaster.setFromCamera(mouse, camera);
+        let intersects;
+        if (svgLoaded) {
+            intersects = raycaster.intersectObjects(onlyMap);
+            onlyMap.map(mapMesh => {
+                mapMesh.material.color.set(0x232323);
+            })
+            for (let i = 0; i < intersects.length; i++) {
+                intersects[i].object.material.color.set(0xffffff);
+            }
+        }
+
+        //
         const cameraControls = controlPanel.cameraControls;
         if (cameraControls.autoRotate) {
             clouds.rotation.y -= cameraControls.cloudRotationSpeed;
@@ -164,10 +188,10 @@ function createGUI() {
             g: 0,
             b: 0
         } : {
-                r: 1,
-                g: 1,
-                b: 1
-            }
+            r: 1,
+            g: 1,
+            b: 1
+        }
     });
     guiLight.add(lightControls, 'ambientLight').onChange((value) => {
         lightControls.ambientLight = value;
@@ -176,10 +200,10 @@ function createGUI() {
             g: 0,
             b: 0
         } : {
-                r: 1,
-                g: 1,
-                b: 1
-            }
+            r: 1,
+            g: 1,
+            b: 1
+        }
     });
 
     const modeControls = controlPanel.modeControls;
@@ -445,17 +469,17 @@ function addPicking() {
 
         // actual drawing globe
         const fragmentShaderReplacements = [{
-            from: '#include <common>',
-            to: `
+                from: '#include <common>',
+                to: `
               #include <common>
               uniform sampler2D indexTexture;
               uniform sampler2D paletteTexture;
               uniform float paletteTextureWidth;
             `,
-        },
-        {
-            from: '#include <color_fragment>',
-            to: `
+            },
+            {
+                from: '#include <color_fragment>',
+                to: `
               #include <color_fragment>
               {
                 vec4 indexColor = texture2D(indexTexture, vUv);
@@ -466,7 +490,7 @@ function addPicking() {
                 // diffuseColor.rgb = paletteColor.rgb - diffuseColor.rgb;  // black outlines
               }
             `,
-        },
+            },
         ];
 
         const texture = loader.load('https://threejsfundamentals.org/threejs/resources/data/world/country-outlines-4k.png');
@@ -624,22 +648,8 @@ function createStars(radius, segments) {
     );
 }
 
-function loadSVG(url) {
-
-    //
-
-    // const scene = new THREE.Scene();
-    // scene.background = new THREE.Color(0xb0b0b0);
-
-    //
-
-    // var helper = new THREE.GridHelper(160, 10);
-    // helper.rotation.x = Math.PI / 2;
-    // scene.add(helper);
-
-    //
-
-    var loader = new SVGLoader();
+async function loadSVG(url) {
+    const loader = new SVGLoader();
 
     loader.load(url, function (data) {
 
@@ -648,12 +658,12 @@ function loadSVG(url) {
         var group = new THREE.Group();
         // group.scale.multiplyScalar(0.25);
         group.scale.multiplyScalar(0.001);
-        
+
         // group.position.x = -70;
         // group.position.y = 70;
         group.position.x = 0.7;
         group.position.y = 0.35;
-        
+
         group.scale.y *= -1;
 
         for (var i = 0; i < paths.length; i++) {
@@ -678,11 +688,13 @@ function loadSVG(url) {
 
                     var shape = shapes[j];
 
-                    var geometry = new THREE.ExtrudeBufferGeometry(shape, {depth : -100});
+                    var geometry = new THREE.ExtrudeBufferGeometry(shape, {
+                        depth: -100
+                    });
                     var mesh = new THREE.Mesh(geometry, material);
 
                     group.add(mesh);
-
+                    onlyMap.push(mesh);
                 }
 
             }
@@ -692,7 +704,8 @@ function loadSVG(url) {
             if (controlPanel.svgControls.drawStrokes && strokeColor !== undefined && strokeColor !== 'none') {
 
                 var material = new THREE.MeshBasicMaterial({
-                    color: new THREE.Color().setStyle(strokeColor),
+                    // color: new THREE.Color().setStyle(strokeColor),
+                    color : 0x000000,
                     opacity: path.userData.style.strokeOpacity,
                     transparent: path.userData.style.strokeOpacity < 1,
                     side: THREE.DoubleSide,
@@ -719,8 +732,9 @@ function loadSVG(url) {
             }
 
         }
-        console.log(group);
+        svgLoaded = true;
 
+        console.log(group);
         scene.add(group);
         svgMap = group;
         svgMap.position.z = 100;
@@ -730,5 +744,11 @@ function loadSVG(url) {
 
 init();
 
-loadSVG('../images/svg/korea.svg');
+// loadSVG('../images/svg/korea.svg');
 
+window.addEventListener('mousemove', onMouseMove);
+
+function onMouseMove(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
